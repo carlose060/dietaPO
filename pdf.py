@@ -1,6 +1,8 @@
 from datetime import datetime
 from fpdf import FPDF
 
+DIR_LOGO = 'imgs/ufsj.jpg'
+DIR_TEXTS = 'texts/'
 
 class PDF(FPDF):
 
@@ -10,7 +12,7 @@ class PDF(FPDF):
         self.header_footer = 'Trabalho pratico de Pesquisa Operacional para Computação- 2023.1 - UFSJ'
 
     def header(self):    
-        self.image(f'ufsj.jpg',5, 7, 15, 17, type='jpg')
+        self.image(DIR_LOGO, 5, 7, 15, 17, type='jpg')
 
         self.set_font('helvetica', 'B', 12)
         self.set_xy(20, 10)
@@ -141,7 +143,7 @@ class PDF(FPDF):
         self.set_xy(5, y_text)
         self.set_font('helvetica', 'I', 9)
 
-        with open('sub.txt', 'r') as f:
+        with open(f'{DIR_TEXTS}sub.txt', 'r') as f:
             for line in f.readlines():
 
                 if line[:5] == 'Grupo':

@@ -1,16 +1,27 @@
 import os
 import re
+from pdf import PDF
 import pandas as pd
-from PDF import PDF
 from po import PlDieta
+from datetime import datetime
 from string import ascii_letters
+
+DIR_TEXTS = 'texts/'
+DIR_DIETAS = 'dietas/'
+
 
 class Inicio:
 
     def __init__(self):
         self.alimentos_selecionados = []
         self.restricoes = []
-        self.df_taco = pd.read_excel('df_taco.xlsx')
+
+        self.prot = 0
+        self.carbo = 0
+        self.gord = 0
+        self.func = ''
+        
+        self.df_taco = pd.read_excel(f'{DIR_TEXTS}df_taco.xlsx')
         
 
     def tela_inicial(self):
@@ -113,7 +124,7 @@ class Inicio:
 
             print(f'{self.alimentos_selecionados[idx_alimento]["Alimento"]} = {gramas:.2f}')
         d_recomendado = {}
-        with open('valores_recomendados.txt', 'r') as f:
+        with open(f'{DIR_TEXTS}valores_recomendados.txt', 'r') as f:
             for line in f.readlines():
                 if len(line[:-1].split(' ')) == 2:
                     key, value = line[:-1].split(' ')
@@ -124,7 +135,7 @@ class Inicio:
         pdf = PDF()
         pdf.relatorio(kcal, variaveis, self.alimentos_selecionados, micros, d_recomendado)
         pdf.relatorio_substituicao()
-        pdf.output('relatorioDieta.pdf', 'F')
+        pdf.output(f'{DIR_DIETAS}Dieta-{datetime.now().strftime("%H:%M")}.pdf', 'F')
             
         
     def definir_valores_iniciais(self):
