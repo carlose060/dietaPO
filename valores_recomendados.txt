@@ -1,0 +1,15 @@
+Cálcio(mg) 1000
+Magnésio(mg) 260
+Manganês(mg) 2.3
+Fósforo(mg) 700
+Ferro(mg) 14
+Sódio(mg) 2400
+Potássio(mg) 3500
+Cobre(mg) 0.9
+Zinco(mg) 7
+Retinol(mcg) 600
+Tiamina(mg) 1.2
+Riboflavina(mg) 1.3
+Piridoxina(mg) 1.3
+Niacina(mg) 16
+Vitamina C(mg) 45

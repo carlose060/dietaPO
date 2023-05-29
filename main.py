@@ -1,16 +1,15 @@
-import pandas as pd
+from interface import Inicio
+from sys import argv
 
-# Lê a planilha "Tabela de Composição de Alimentos" do arquivo Excel da TACO
-df_taco = pd.read_excel('Taco_4a_edicao_2011.xlsx')
-
-# Retirar campos Tr por 0
-df_taco = df_taco.replace('Tr', 0).replace('NA', 0)
-
-# Retirar campos em branco por 0
-df_taco = df_taco.fillna(0)
-
-# Visualiza as primeiras linhas do dataframe
-print(df_taco.head())
+if __name__ == '__main__':
+    # gets argv 1 with exists
+    if {idx: value for idx,value in enumerate(argv)}.get(1, None) == '--teste':
+        inicio = Inicio()
+        inicio.definir_valores_iniciais()
+        inicio.rodar_algoritmo()
+    else:
+        inicio = Inicio()
+        inicio.tela_inicial()
 
 """
 " * " as análises estão sendo reavaliadas

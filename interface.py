@@ -1,101 +1,31 @@
 import os
+import re
 import pandas as pd
+from PDF import PDF
 from po import PlDieta
+from string import ascii_letters
 
 class Inicio:
 
     def __init__(self):
-
         self.alimentos_selecionados = []
         self.restricoes = []
-        self.df_taco = pd.read_excel('Taco_4a_edicao_2011.xlsx')
-        # Retirar campos Tr, NA e valores em branco por 0
-        self.df_taco = self.df_taco.replace('Tr', 0).replace('NA', 0).fillna(0)
-    
-    def get_alimentos(self):
-        return self.df_taco['Alimento'].tolist()
-    
- 
-    def get_macro_alimentos_selecionados_df(self):
-        # Select two columns in Serie frame
-        if self.alimentos_selecionados:
-            return self.df_taco[self.df_taco['Alimento'].isin(self.alimentos_selecionados)][['Energia (kcal)', 'Proteína', 'Carboidrato', 'Lipídeos']]
-        else:
-            return 'Nenhum alimento selecionado'
-    
-    def selecionar_alimentos(self):
-        alimento = input('Digite o nome do alimentos que deseja buscar: ')
-        # mount the regex for alimento
-        alimento = alimento.replace(' ', '.*')  
-        # select the alimento
-        # Query the df_taco with the regex
-        alimentos = self.df_taco[self.df_taco['Alimento'].str.contains(alimento, case=False)]
+        self.df_taco = pd.read_excel('df_taco.xlsx')
         
-        #alimentos = self.df_taco[self.df_taco['Alimento'].str.contains(alimento, case=False)]['Alimento'].tolist()
-        
-        if alimentos.empty:
-            os.system('clear')
-            print('Nenhum alimento encontrado')
-            self.selecionar_alimentos()
-        else:
-            print('Alimentos encontrados:')
-            #for alimento in alimentos.iloc():
-            #    print(f"{alimento['id']} - {alimento['Alimento']}")
-            [print(f"{alimento['id']} - {alimento['Alimento']}") for alimento in alimentos.iloc()] 
-            op = input('Digite o número do alimento que deseja selecionar (ou qualquer letra para voltar): ')
-            if op.isdigit() and int(op) in alimentos['id'].tolist():
-                self.alimentos_selecionados.append(alimentos[alimentos['id'] == int(op)])
-
-                self.selecionar_alimentos()
-            else:
-                self.tela_inicial()
-        
-    def proxima_etapa(self):
-        
-        self.prot = input('Digite a quantidade proteinas: ')
-        self.carbo = input('Digite a quantidade carboidratos: ')
-        self.gord = input('Digite a quantidade gorduras: ')
-        self.func = input('0. Para maximar a quantidade de calorias\n1.Para minimizar a quantidade de calorias \nDigite a opção desejada:')
-        os.system('clear')
-        self.definir_proporcoes()
-              
-    def rodar_algoritmo(self):
-        PlDieta(self.get_macro_alimentos_selecionados_df(), self.restricoes, self.prot, self.carbo, self.gord, self.func)
-
-    def definir_proporcoes(self):
-        print('******************************************')
-        print('********** Alimentos selecionados ********')
-        print('******************************************')
-        [print(x, y['Alimento']) for x,y in enumerate(self.alimentos_selecionados)]
-        print()
-        print('Digite 0 nas 3 opções para finalizar')
-        print('Selecione as proporcões dos alimentos pela sua id')
-        alimento1 = input('digite a id do primeiro alimento: ')
-        proporcao = input('digite a proporção do primeiro alimento em relação ao segundo alimento: ')
-        alimento2 = input('digite a id do segundo alimento: ')
-        # Selecionar o campo alimento com o campo id
-        if alimento1 == '0' and alimento2 == '0' and proporcao == '0':
-            self.rodar_algoritmo()
-        else:
-            nome_alimento1 = self.df_taco[self.df_taco['id'] == int(alimento1)]['Alimento'].tolist()[0]
-            nome_alimento2 = self.df_taco[self.df_taco['id'] == int(alimento2)]['Alimento'].tolist()[0]
-            self.restricoes.append([int(alimento1), int(alimento2), int(proporcao)])
-            os.system('clear')
-            print(f'{proporcao}*{nome_alimento1} = {nome_alimento2}')
-            print()
-            self.definir_proporcoes() 
 
     def tela_inicial(self):
         print('******************************************')
         print('********** Tabela de Alimentos ***********')
         print('******************************************')
         if self.alimentos_selecionados:
-            [print(f"{al['id']} {al['Alimento']}") for al in self.alimentos_selecionados]
+            [print(f"{idx} {al['Alimento']}") for idx, al in enumerate(self.alimentos_selecionados)]
         else:
             print('Nenhum alimento selecionado')
         print()
         print('0 - Selecionar Alimentos')
         print('1 - Proxima etapa')
+        print('2 - Adicionar alimento na tabela')
+        print('3 - Rodar com valores para teste')
         op = input('Digite a opção desejada: ')
         if op == '0':
             self.selecionar_alimentos()
@@ -103,15 +33,135 @@ class Inicio:
             # execute clear in the terminal
             os.system('clear')
             self.proxima_etapa()
+        elif op == '2':
+            # execute clear in the terminal
+            os.system('clear')
+            row = {colunas: (input(f'Digite o valor para {colunas}: ')) for colunas in self.df_taco.columns.tolist()}
+            self.df_taco = pd.concat([self.df_taco, pd.DataFrame(row, index=[0])], ignore_index=True)
+        elif op == '3':
+            # execute clear in the terminal
+            os.system('clear')
+            self.definir_valores_iniciais()
+            self.rodar_algoritmo()
         else:
             # clear terminal
             os.system('clear')
             print('Opção inválida')
             self.tela_inicial()
 
-if __name__ == '__main__':
-    inicio = Inicio()
-    inicio.tela_inicial()
+    
+    def selecionar_alimentos(self):
+        alimento = input('Digite o nome do alimentos que deseja buscar: ')
+        alimentos = self.df_taco[self.df_taco['Alimento'].str.contains(alimento, case=False)]    
+
+        if alimentos.empty:
+            os.system('clear')
+            print('Nenhum alimento encontrado')
+            self.selecionar_alimentos()
+        else:
+            print('Alimentos encontrados:')
+            [print(f"{idx} - {alimento['Alimento']}") for idx,alimento in enumerate(alimentos.iloc())] 
+            op = input('Digite o número do alimento que deseja selecionar (ou qualquer letra para voltar): ')
+            if op.isdigit() and int(op) < len(alimentos['Alimento'].tolist()):
+                self.alimentos_selecionados.append(alimentos.iloc()[int(op)])
+                self.selecionar_alimentos()
+            else:
+                self.tela_inicial()
+
+
+    def proxima_etapa(self):     
+        self.prot = float(input('Digite a quantidade proteinas: '))
+        self.carbo = float(input('Digite a quantidade carboidratos: '))
+        self.gord = float(input('Digite a quantidade gorduras: '))
+
+        self.func = input('0. Para maximar a quantidade de calorias.\n1.Para minimizar a quantidade de calorias.\nDigite a opção desejada: ')
+        os.system('clear')
+        self.definir_proporcoes()
+
+    def definir_proporcoes(self):
+        print('******************************************')
+        print('********** Alimentos selecionados ********')
+        print('******************************************')
+        [print(f"{x} - {y['Alimento']}") for x,y in zip(ascii_letters, self.alimentos_selecionados)]
+        print()
+        print('Escreva a propoção usando as letras respectivas aos alimentos (dica: Digite somente um caracter para sair)')
+        print()
+        expressao = input('Exemplo: 3a - b == 0\nEntre com a expressão: ')
+        
+        if len(expressao) == 1:
+            self.rodar_algoritmo()
+        else:
+            expressao_list = re.split(r'\s*([><+=-]+|[a-zA-Z]+)\s*', expressao)
+            self.restricoes.append(expressao_list)
+            os.system('clear')
+            self.definir_proporcoes()
+
+    def rodar_algoritmo(self):
+        micros = {key: 0 for key in self.alimentos_selecionados[0].keys().tolist()[4:]}
+        dieta = PlDieta(self.func)
+        dieta.definir_parametros(self.alimentos_selecionados,self.restricoes, self.prot, self.carbo, self.gord)
+        status = dieta.rodar_pl()
+        print(f'Status da solução: {status}')
+        kcal, variaveis = dieta.receber_resultados()
+        
+        print(f'Valor ótimo: {kcal:.2f}')
+        for v in variaveis:
+            idx_alimento = int(v.name[1:])
+            gramas = v.varValue
+            for key in list(micros.keys()):
+                micros[key] += (self.alimentos_selecionados[idx_alimento][key]*gramas)
+
+            print(f'{self.alimentos_selecionados[idx_alimento]["Alimento"]} = {gramas:.2f}')
+        d_recomendado = {}
+        with open('valores_recomendados.txt', 'r') as f:
+            for line in f.readlines():
+                if len(line[:-1].split(' ')) == 2:
+                    key, value = line[:-1].split(' ')
+                else:
+                    key, key2, value = line[:-1].split(' ')
+                    key = f'{str(key)} {str(key2)}'
+                d_recomendado[key] = float(value)
+        pdf = PDF()
+        pdf.relatorio(kcal, variaveis, self.alimentos_selecionados, micros, d_recomendado)
+        pdf.relatorio_substituicao()
+        pdf.output('relatorioDieta.pdf', 'F')
+            
+        
+    def definir_valores_iniciais(self):
+        values = ['whey', 0, 404, 0, 76, 6, 0, 13.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        row = {colunas: value for colunas, value in zip(self.df_taco.columns.tolist(),values)}
+        self.df_taco = pd.concat([self.df_taco, pd.DataFrame(row, index=[0])], ignore_index=True)
+        self.alimentos_selecionados = [
+            self.df_taco.iloc[2],
+            self.df_taco.iloc[6],
+            self.df_taco.iloc[47],
+            self.df_taco.iloc[109],
+            self.df_taco.iloc[125],
+            self.df_taco.iloc[181],
+            self.df_taco.iloc[461],    
+            self.df_taco.iloc[573],  
+            self.df_taco.iloc[383],   
+            self.df_taco.iloc[-1],   
+            ]
+        self.restricoes = [
+           
+            ['', 'a', '', '<=', '3'],
+            ['', 'b', '', '<=', '0.5'],
+            ['', 'c', '', '<=', '1'],
+            ['', 'd', '', '<=', '1'],
+            ['', 'e', '', '<=', '1.5'],
+            ['', 'f', '', '<=', '2'],
+            ['', 'g', '', '<=', '0.2'],
+            ['', 'h', '', '<=', '2'],
+            ['', 'i', '', '<=', '3'],
+            ['', 'j', '', '==', '0.3'],
+        
+        ]
+        self.prot = 137.6
+        self.carbo = 413
+        self.gord = 61.2
+        self.func = '1'
+
 
 
                 
